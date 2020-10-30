@@ -20,6 +20,7 @@ import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
+import android.widget.ImageButton;
 
 public class SimpleVideoStream extends Activity implements
 MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener,
@@ -32,6 +33,7 @@ MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener {
 	private String mVideoUrl;
 	private Boolean mShouldAutoClose = true;
 	private boolean mControls;
+	private ImageButton closeButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +53,17 @@ MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener {
 		mVideoView = new VideoView(this);
 		mVideoView.setLayoutParams(relLayoutParam);
 		relLayout.addView(mVideoView);
+
+		closeButton = new ImageButton(this);
+		closeButton.setBackgroundColor(getResources().getColor(android.R.color.transparent, getTheme()));
+		closeButton.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+		closeButton.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+						wrapItUp(RESULT_OK, null);
+				}
+		});
+		relLayout.addView(closeButton);
 
 		// Create progress throbber
 		mProgressBar = new ProgressBar(this);
