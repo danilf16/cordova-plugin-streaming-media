@@ -69,6 +69,13 @@
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/SimpleVideoStream.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/StreamingMedia.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/ImageLoadTask.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
+
+		<source-file src="src/android/layout/activity_video.xml" target-dir="res/layout" />
+		<source-file src="src/android/layout/player_control.xml" target-dir="res/layout" />
+
+		<framework src="androidx.constraintlayout:constraintlayout:2.0.4"/>
+		<framework src="com.google.android.exoplayer:exoplayer-core:2.12.3"/>
+		<framework src="com.google.android.exoplayer:exoplayer-ui:2.12.3"/>
 	</platform>
 
 	<platform name="amazon-fireos">
