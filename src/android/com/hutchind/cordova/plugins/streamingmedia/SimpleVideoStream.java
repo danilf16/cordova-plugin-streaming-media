@@ -3,6 +3,7 @@ package com.hutchind.cordova.plugins.streamingmedia;
 import android.app.Application;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +19,7 @@ public class SimpleVideoStream extends AppCompatActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(getResourceId("layout", "activity_video"));
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		Bundle b = getIntent().getExtras();
 		String mVideoUrl = b != null ? b.getString("mediaUrl") : null;
