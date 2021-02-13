@@ -58,34 +58,35 @@ public class StreamingMedia extends CordovaPlugin {
 		final CordovaInterface cordovaObj = cordova;
 		final CordovaPlugin plugin = this;
 
-		cordova.getActivity().runOnUiThread(new Runnable() {
-			public void run() {
-				final Intent streamIntent = new Intent(cordovaObj.getActivity().getApplicationContext(), activityClass);
-				Bundle extras = new Bundle();
-				extras.putString("mediaUrl", url);
+		cordova.getActivity().runOnUiThread((Runnable) () -> {
+			final Intent streamIntent = new Intent(cordovaObj.getActivity().getApplicationContext(), activityClass);
+			Bundle extras = new Bundle();
+			extras.putString("mediaUrl", url);
 
-				if (options != null) {
-					Iterator<String> optKeys = options.keys();
-					while (optKeys.hasNext()) {
-						try {
-							final String optKey = (String)optKeys.next();
-							if (options.get(optKey).getClass().equals(String.class)) {
-								extras.putString(optKey, (String)options.get(optKey));
-								Log.v(TAG, "Added option: " + optKey + " -> " + String.valueOf(options.get(optKey)));
-							} else if (options.get(optKey).getClass().equals(Boolean.class)) {
-								extras.putBoolean(optKey, (Boolean)options.get(optKey));
-								Log.v(TAG, "Added option: " + optKey + " -> " + String.valueOf(options.get(optKey)));
-							}
-
-						} catch (JSONException e) {
-							Log.e(TAG, "JSONException while trying to read options. Skipping option.");
+			if (options != null) {
+				Iterator<String> optKeys = options.keys();
+				while (optKeys.hasNext()) {
+					try {
+						final String optKey = (String)optKeys.next();
+						if (options.get(optKey).getClass().equals(String.class)) {
+							extras.putString(optKey, (String)options.get(optKey));
+							Log.v(TAG, "Added option: " + optKey + " -> " + options.get(optKey));
+						} else if (options.get(optKey).getClass().equals(Boolean.class)) {
+							extras.putBoolean(optKey, (Boolean)options.get(optKey));
+							Log.v(TAG, "Added option: " + optKey + " -> " + options.get(optKey));
+						} else if (options.get(optKey).getClass().equals(Integer.class)) {
+							extras.putInt(optKey, (int)options.get(optKey));
+							Log.v(TAG, "Added option: " + optKey + " -> " + options.get(optKey));
 						}
-					}
-					streamIntent.putExtras(extras);
-				}
 
-				cordovaObj.startActivityForResult(plugin, streamIntent, ACTIVITY_CODE_PLAY_MEDIA);
+					} catch (JSONException e) {
+						Log.e(TAG, "JSONException while trying to read options. Skipping option.");
+					}
+				}
+				streamIntent.putExtras(extras);
 			}
+
+			cordovaObj.startActivityForResult(plugin, streamIntent, ACTIVITY_CODE_PLAY_MEDIA);
 		});
 		return true;
 	}
@@ -93,9 +94,15 @@ public class StreamingMedia extends CordovaPlugin {
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		Log.v(TAG, "onActivityResult: " + requestCode + " " + resultCode);
 		super.onActivityResult(requestCode, resultCode, intent);
+
 		if (ACTIVITY_CODE_PLAY_MEDIA == requestCode) {
 			if (Activity.RESULT_OK == resultCode) {
-				this.callbackContext.success();
+				if (intent.hasExtra("message")) {
+					String message = intent.getStringExtra("message");
+					this.callbackContext.success(message);
+				} else {
+					this.callbackContext.success();
+				}
 			} else if (Activity.RESULT_CANCELED == resultCode) {
 				String errMsg = "Error";
 				if (intent != null && intent.hasExtra("message")) {

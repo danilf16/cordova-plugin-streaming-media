@@ -1,7 +1,10 @@
 package com.hutchind.cordova.plugins.streamingmedia;
 
+import android.app.Activity;
 import android.app.Application;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -14,6 +17,7 @@ import com.google.android.exoplayer2.ui.PlayerView;
 
 public class SimpleVideoStream extends AppCompatActivity {
 	protected PlayerView playerView;
+	private SimpleExoPlayer player;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -27,8 +31,18 @@ public class SimpleVideoStream extends AppCompatActivity {
 			finish();
 		}
 
-		SimpleExoPlayer player = new SimpleExoPlayer.Builder(getApplicationContext()).build();
+		player = new SimpleExoPlayer.Builder(getApplicationContext()).build();
 		MediaItem mediaItem = MediaItem.fromUri(mVideoUrl);
+
+		if (b != null && b.containsKey("stopAt")) {
+			int stopAt = b.getInt("stopAt");
+
+			player.createMessage(((messageType, payload) -> stopVideo()))
+				.setLooper(Looper.getMainLooper())
+				.setPosition(stopAt)
+				.setDeleteAfterDelivery(true)
+				.send();
+		}
 
 		playerView = findViewById(getResourceId("id", "player_view"));
 		playerView.requestFocus();
@@ -43,8 +57,18 @@ public class SimpleVideoStream extends AppCompatActivity {
 		ImageButton imageButton = findViewById(getResourceId("id", "exo_close"));
 		imageButton.setOnClickListener(v -> {
 			player.stop();
+			setResult(Activity.RESULT_OK);
 			finish();
 		});
+	}
+
+	private void stopVideo() {
+		Intent intent = new Intent();
+		intent.putExtra("message", "stopped");
+
+		player.stop();
+		setResult(Activity.RESULT_OK, intent);
+		finish();
 	}
 
 	private void hideSystemUI() {
