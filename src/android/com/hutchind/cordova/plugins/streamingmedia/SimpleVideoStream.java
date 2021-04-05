@@ -62,6 +62,16 @@ public class SimpleVideoStream extends AppCompatActivity {
 		});
 	}
 
+	@Override
+	protected void onDestroy() {
+		if (player != null) {
+			player.stop();
+			player.release();
+		}
+
+		super.onDestroy();
+	}
+
 	private void stopVideo() {
 		Intent intent = new Intent();
 		intent.putExtra("message", "stopped");
