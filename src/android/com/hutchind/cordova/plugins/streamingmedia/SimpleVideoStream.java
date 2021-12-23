@@ -11,13 +11,14 @@ import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 public class SimpleVideoStream extends AppCompatActivity {
-	protected PlayerView playerView;
-	private SimpleExoPlayer player;
+	protected StyledPlayerView playerView;
+	private ExoPlayer player;
+	private ImageButton closeButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +32,7 @@ public class SimpleVideoStream extends AppCompatActivity {
 			finish();
 		}
 
-		player = new SimpleExoPlayer.Builder(getApplicationContext()).build();
+		player = new ExoPlayer.Builder(getApplicationContext()).build();
 		MediaItem mediaItem = MediaItem.fromUri(mVideoUrl);
 
 		if (b != null && b.containsKey("stopAt")) {
@@ -48,14 +49,34 @@ public class SimpleVideoStream extends AppCompatActivity {
 		playerView.requestFocus();
 		playerView.setPlayer(player);
 
+		playerView.setShowPreviousButton(false);
+		playerView.setShowNextButton(false);
+
+		playerView.setControllerVisibilityListener(visibility -> {
+			if (visibility == View.VISIBLE && closeButton != null) {
+				closeButton.setVisibility(View.VISIBLE);
+			}
+
+			if (visibility == View.GONE && closeButton != null) {
+				closeButton.setVisibility(View.GONE);
+			}
+		});
+
+		player.setTrackSelectionParameters(
+				player.getTrackSelectionParameters()
+						.buildUpon()
+						.setPreferredAudioLanguage("en")
+						.setPreferredTextLanguage("en")
+						.build());
+
 		player.setMediaItem(mediaItem);
 		player.prepare();
 		player.play();
 
-		hideSystemUI();
+		playerView.hideController();
 
-		ImageButton imageButton = findViewById(getResourceId("id", "exo_close"));
-		imageButton.setOnClickListener(v -> {
+		closeButton = findViewById(getResourceId("id", "exo_close"));
+		closeButton.setOnClickListener(v -> {
 			player.stop();
 			setResult(Activity.RESULT_OK);
 			finish();
@@ -79,17 +100,6 @@ public class SimpleVideoStream extends AppCompatActivity {
 		player.stop();
 		setResult(Activity.RESULT_OK, intent);
 		finish();
-	}
-
-	private void hideSystemUI() {
-		View decorView = getWindow().getDecorView();
-		decorView.setSystemUiVisibility(
-			View.SYSTEM_UI_FLAG_IMMERSIVE
-			| View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-			| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-			| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-			| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-			| View.SYSTEM_UI_FLAG_FULLSCREEN);
 	}
 
 	private int getResourceId(String type, String name) {

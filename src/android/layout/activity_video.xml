@@ -8,9 +8,21 @@
     android:background="@android:color/black"
     tools:context="com.hutchind.cordova.plugins.streamingmedia.SimpleAudioStream">
 
-    <com.google.android.exoplayer2.ui.PlayerView
+    <com.google.android.exoplayer2.ui.StyledPlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:controller_layout_id="@layout/player_control"/>
+        app:show_buffering="when_playing"
+        app:show_shuffle_button="false"
+        app:show_subtitle_button="true" />
+
+    <ImageButton
+        android:id="@+id/exo_close"
+        style="@style/ExoMediaButton"
+        android:layout_gravity="start"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 </androidx.constraintlayout.widget.ConstraintLayout>
