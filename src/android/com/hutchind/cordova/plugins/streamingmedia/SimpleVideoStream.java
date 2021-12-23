@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,7 +23,7 @@ public class SimpleVideoStream extends AppCompatActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(getResourceId("layout", "activity_video"));
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
 
 		Bundle b = getIntent().getExtras();
 		String mVideoUrl = b != null ? b.getString("mediaUrl") : null;
