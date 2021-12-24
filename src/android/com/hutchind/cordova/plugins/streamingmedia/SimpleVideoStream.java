@@ -61,12 +61,16 @@ public class SimpleVideoStream extends AppCompatActivity {
 			}
 		});
 
-		player.setTrackSelectionParameters(
-				player.getTrackSelectionParameters()
-						.buildUpon()
-						.setPreferredAudioLanguage("en")
-						.setPreferredTextLanguage("en")
-						.build());
+		if (b != null && b.containsKey("language")) {
+			String lang = b.getString("language");
+
+			player.setTrackSelectionParameters(
+					player.getTrackSelectionParameters()
+							.buildUpon()
+							.setPreferredAudioLanguage(lang)
+							.setPreferredTextLanguage(lang)
+							.build());
+		}
 
 		player.setMediaItem(mediaItem);
 		player.prepare();
