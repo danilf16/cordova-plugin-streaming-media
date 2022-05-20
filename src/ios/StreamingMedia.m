@@ -25,6 +25,7 @@
     BOOL initFullscreen;
     NSString *mOrientation;
     NSString *language;
+    NSString *startFrom;
     NSString *videoType;
     AVPlayer *movie;
     BOOL controls;
@@ -38,6 +39,7 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
     // Common options
     mOrientation = options[@"orientation"] ?: @"default";
     language = options[@"language"] ?: @"ru";
+    startFrom = options[@"startFrom"] ?: @"0";
 
     if (![options isKindOfClass:[NSNull class]] && [options objectForKey:@"shouldAutoClose"]) {
         shouldAutoClose = [[options objectForKey:@"shouldAutoClose"] boolValue];
@@ -91,7 +93,7 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 -(void)play:(CDVInvokedUrlCommand *) command type:(NSString *) type {
     NSLog(@"play called");
     callbackId = command.callbackId;
-    NSString *mediaUrl  = [command.arguments objectAtIndex:0];
+    NSString *mediaUrl = [command.arguments objectAtIndex:0];
     [self parseOptions:[command.arguments objectAtIndex:1] type:type];
 
     [self startPlayer:mediaUrl];
@@ -234,9 +236,12 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
     if(@available(iOS 11.0, *)) { [moviePlayer setEntersFullScreenWhenPlaybackBegins:YES]; }
 
     // present modally so we get a close button
+    __weak StreamingMedia *weakSelf = self;
     [self.viewController presentViewController:moviePlayer animated:YES completion:^(void){
-        [moviePlayer.player play];
+        StreamingMedia *strongSelf = weakSelf;
+        [self seekToVideoTime:strongSelf->startFrom];
     }];
+
 
     // add audio image and background color
     if ([videoType isEqualToString:TYPE_AUDIO]) {
@@ -258,6 +263,29 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
         if([[option extendedLanguageTag] isEqualToString:language]) {
             [item selectMediaOption:option inMediaSelectionGroup:group];
             break;
+        }
+    }
+}
+
+- (void)seekToVideoTime:(NSString *)time {
+    double seconds = [time doubleValue];
+
+    if (!seconds) {
+        [moviePlayer.player play];
+    } else {
+        BOOL isReadyToSeek = (movie.status == AVPlayerStatusReadyToPlay);// && (movie.currentItem.status == AVPlayerItemStatusReadyToPlay);
+        if (isReadyToSeek) {
+            CMTime targetTime = CMTimeMakeWithSeconds(seconds, NSEC_PER_SEC);
+            __weak StreamingMedia *weakSelf = self;
+            [movie seekToTime: targetTime
+              toleranceBefore: kCMTimeZero
+               toleranceAfter: kCMTimeZero
+            completionHandler: ^(BOOL finished) {
+                StreamingMedia *strongSelf = weakSelf;
+                if (finished) {
+                    [strongSelf->moviePlayer.player play];
+                }
+            }];
         }
     }
 }
@@ -294,6 +322,11 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
                                                  name:UIDeviceOrientationDidChangeNotification
                                                object:nil];
 
+    [moviePlayer addObserver:self
+            forKeyPath:@"view.frame"
+               options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionInitial)
+               context:nil];
+
     /* Listen for click on the "Done" button
 
      // Deprecated.. AVPlayerController doesn't offer a "Done" listener... thanks apple. We'll listen for an error when playback finishes
@@ -302,6 +335,12 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
      name:MPMoviePlayerWillExitFullscreenNotification
      object:nil];
      */
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if (moviePlayer.isBeingDismissed) {
+        [self sendFinishTimePluginResult:[self getVideoCurrentTime]];
+    }
 }
 
 - (void) handleGestures {
@@ -384,13 +423,34 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
         CDVPluginResult* pluginResult;
         if ([errorMsg length] != 0) {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMsg];
+            [self sendFinishTimePluginResult:[self getVideoCurrentTime]];
         } else {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:true];
+            [self sendFinishTimePluginResult:-1];
         }
         [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
     }
 }
 
+- (void) sendFinishTimePluginResult:(double)finishTime {
+    NSString *finishAt = [[NSNumber numberWithDouble:finishTime] stringValue];
+    NSDictionary* params = @{ @"finishAt": finishAt };
+
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:params];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+}
+
+- (double) getVideoCurrentTime {
+    double currentTime = 0;
+    if (movie.currentItem) {
+        CMTime time = movie.currentItem.currentTime;
+        currentTime = CMTimeGetSeconds(time);
+        if (isnan(currentTime)) {
+            currentTime = -1;
+        }
+    }
+    return currentTime;
+}
 
 - (void)cleanup {
     NSLog(@"Clean up called");
