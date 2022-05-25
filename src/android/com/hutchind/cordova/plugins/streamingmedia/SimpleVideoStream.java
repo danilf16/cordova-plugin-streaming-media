@@ -78,9 +78,16 @@ public class SimpleVideoStream extends AppCompatActivity {
 							.build());
 		}
 
+
 		player.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
 		player.setMediaItem(mediaItem);
 		player.prepare();
+
+		if (b != null && b.containsKey("startFrom")) {
+			int position = b.getInt("startFrom", 0);
+			player.seekTo(position * 1000L);
+		}
+
 		player.play();
 
 		playerView.hideController();
@@ -88,7 +95,11 @@ public class SimpleVideoStream extends AppCompatActivity {
 		closeButton = findViewById(getResourceId("id", "exo_close"));
 		closeButton.setOnClickListener(v -> {
 			player.stop();
-			setResult(Activity.RESULT_OK);
+
+			Intent intent = new Intent();
+			intent.putExtra("finishAt", player.getCurrentPosition());
+
+			setResult(Activity.RESULT_OK, intent);
 			finish();
 		});
 	}

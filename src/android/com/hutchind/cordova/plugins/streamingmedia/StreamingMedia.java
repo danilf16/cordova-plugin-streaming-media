@@ -100,6 +100,17 @@ public class StreamingMedia extends CordovaPlugin {
 				if (intent != null && intent.hasExtra("message")) {
 					String message = intent.getStringExtra("message");
 					this.callbackContext.success(message);
+				} else if (intent != null && intent.hasExtra("finishAt")) {
+					long position = intent.getLongExtra("finishAt", -1);
+
+					JSONObject res = new JSONObject();
+					try {
+						res.put("finishAt", position / 1000);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+
+					callbackContext.success(res);
 				} else {
 					this.callbackContext.success();
 				}
