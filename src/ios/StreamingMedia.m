@@ -34,6 +34,7 @@
 NSString * const TYPE_VIDEO = @"VIDEO";
 NSString * const TYPE_AUDIO = @"AUDIO";
 NSString * const DEFAULT_IMAGE_SCALE = @"center";
+int const ENDING_THRESHOLD = 60;
 
 -(void)parseOptions:(NSDictionary *)options type:(NSString *) type {
     // Common options
@@ -434,7 +435,14 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 
 - (void) sendFinishTimePluginResult:(double)finishTime {
     NSString *finishAt = [[NSNumber numberWithDouble:finishTime] stringValue];
-    NSDictionary* params = @{ @"finishAt": finishAt };
+    double duration = [self getVideoDuration];
+    NSDictionary* params;
+
+    if (duration > 0 && duration - finishTime < ENDING_THRESHOLD) {
+        params = @{ @"finishAt": @"0" };
+    } else {
+        params = @{ @"finishAt": finishAt };
+    }
 
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:params];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
@@ -450,6 +458,21 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
         }
     }
     return currentTime;
+}
+
+- (double) getVideoDuration {
+    double duration = 0;
+
+    if (movie.currentItem) {
+        CMTime time = movie.currentItem.duration;
+        duration = CMTimeGetSeconds(time);
+
+        if (isnan(duration)) {
+            duration = -1;
+        }
+    }
+
+    return duration;
 }
 
 - (void)cleanup {

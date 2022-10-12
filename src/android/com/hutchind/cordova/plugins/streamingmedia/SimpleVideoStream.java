@@ -18,6 +18,8 @@ import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 public class SimpleVideoStream extends AppCompatActivity {
+	private static final int ENDING_THRESHOLD_MS = 60 * 1000;
+
 	protected StyledPlayerView playerView;
 	private ExoPlayer player;
 	private ImageButton closeButton;
@@ -97,7 +99,12 @@ public class SimpleVideoStream extends AppCompatActivity {
 			player.stop();
 
 			Intent intent = new Intent();
-			intent.putExtra("finishAt", player.getCurrentPosition());
+
+			if (player.getDuration() - player.getCurrentPosition() < ENDING_THRESHOLD_MS) {
+				intent.putExtra("finishAt", 0);
+			} else {
+				intent.putExtra("finishAt", player.getCurrentPosition());
+			}
 
 			setResult(Activity.RESULT_OK, intent);
 			finish();
