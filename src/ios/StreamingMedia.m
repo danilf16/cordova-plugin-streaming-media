@@ -243,7 +243,6 @@ int const ENDING_THRESHOLD = 60;
         [self seekToVideoTime:strongSelf->startFrom];
     }];
 
-
     // add audio image and background color
     if ([videoType isEqualToString:TYPE_AUDIO]) {
         if (imageView != nil) {
@@ -270,6 +269,11 @@ int const ENDING_THRESHOLD = 60;
 
 - (void)seekToVideoTime:(NSString *)time {
     double seconds = [time doubleValue];
+    double duration = [self getVideoDuration];
+
+    if (duration > 0 && duration - seconds < ENDING_THRESHOLD) {
+        seconds = 0;
+    }
 
     if (!seconds) {
         [moviePlayer.player play];

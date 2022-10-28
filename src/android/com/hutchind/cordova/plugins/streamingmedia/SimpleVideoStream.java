@@ -86,8 +86,13 @@ public class SimpleVideoStream extends AppCompatActivity {
 		player.prepare();
 
 		if (b != null && b.containsKey("startFrom")) {
-			int position = b.getInt("startFrom", 0);
-			player.seekTo(position * 1000L);
+			long position = b.getInt("startFrom", 0) * 1000L;
+
+			if (player.getDuration() - position < ENDING_THRESHOLD_MS) {
+				position = 0;
+			}
+
+			player.seekTo(position);
 		}
 
 		player.play();
