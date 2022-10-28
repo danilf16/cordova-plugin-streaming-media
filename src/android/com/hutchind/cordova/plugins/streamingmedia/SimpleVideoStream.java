@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 public class SimpleVideoStream extends AppCompatActivity {
@@ -80,23 +80,32 @@ public class SimpleVideoStream extends AppCompatActivity {
 							.build());
 		}
 
-
 		player.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
 		player.setMediaItem(mediaItem);
-		player.prepare();
 
-		if (b != null && b.containsKey("startFrom")) {
-			long position = b.getInt("startFrom", 0) * 1000L;
+		final boolean[] isAlreadySought = {false};
 
-			if (player.getDuration() - position < ENDING_THRESHOLD_MS) {
-				position = 0;
+		player.addListener(new Player.Listener() {
+			@Override
+			public void onPlaybackStateChanged(int playbackState) {
+				if (playbackState == ExoPlayer.STATE_READY && !isAlreadySought[0]) {
+					if (b != null && b.containsKey("startFrom")) {
+						long position = b.getInt("startFrom", 0) * 1000L;
+						long duration = player.getDuration();
+
+						if (duration - position < ENDING_THRESHOLD_MS) {
+							position = 0;
+						}
+
+						player.seekTo(position);
+						isAlreadySought[0] = true;
+					}
+				}
 			}
+		});
 
-			player.seekTo(position);
-		}
-
+		player.prepare();
 		player.play();
-
 		playerView.hideController();
 
 		closeButton = findViewById(getResourceId("id", "exo_close"));
