@@ -239,7 +239,7 @@ int const ENDING_THRESHOLD = 60;
     // present modally so we get a close button
     __weak StreamingMedia *weakSelf = self;
     [self.viewController presentViewController:moviePlayer animated:YES completion:^(void){
-        StreamingMedia *strongSelf = weakSelf;
+        __strong typeof(self) strongSelf = weakSelf;
         [self seekToVideoTime:strongSelf->startFrom];
     }];
 
@@ -408,35 +408,6 @@ int const ENDING_THRESHOLD = 60;
     }
 }
 
-- (void) moviePlayBackDidFinish:(NSNotification*)notification {
-    NSLog(@"Playback did finish with auto close being %d, and error message being %@", shouldAutoClose, notification.userInfo);
-    NSDictionary *notificationUserInfo = [notification userInfo];
-    NSNumber *errorValue = [notificationUserInfo objectForKey:AVPlayerItemFailedToPlayToEndTimeErrorKey];
-    NSString *errorMsg;
-    if (errorValue) {
-        NSError *mediaPlayerError = [notificationUserInfo objectForKey:@"error"];
-        if (mediaPlayerError) {
-            errorMsg = [mediaPlayerError localizedDescription];
-        } else {
-            errorMsg = @"Unknown error.";
-        }
-        NSLog(@"Playback failed: %@", errorMsg);
-    }
-
-    if (shouldAutoClose || [errorMsg length] != 0) {
-        [self cleanup];
-        CDVPluginResult* pluginResult;
-        if ([errorMsg length] != 0) {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMsg];
-            [self sendFinishTimePluginResult:[self getVideoCurrentTime]];
-        } else {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:true];
-            [self sendFinishTimePluginResult:-1];
-        }
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
-    }
-}
-
 - (void) sendFinishTimePluginResult:(double)finishTime {
     NSString *finishAt = [[NSNumber numberWithDouble:finishTime] stringValue];
     double duration = [self getVideoDuration];
@@ -479,7 +450,39 @@ int const ENDING_THRESHOLD = 60;
     return duration;
 }
 
-- (void)cleanup {
+- (void) moviePlayBackDidFinish:(NSNotification*)notification {
+    NSLog(@"Playback did finish with auto close being %d, and error message being %@", shouldAutoClose, notification.userInfo);
+    NSError *error = notification.userInfo[AVPlayerItemFailedToPlayToEndTimeErrorKey];
+    NSString *errorMsg = error.localizedDescription
+    ?: error.localizedFailureReason
+    ?: @"Unknown error.";
+
+    if (error) {
+        NSLog(@"Playback failed: %@", errorMsg);
+        // Temp fix for AVErrorServerIncorrectlyConfigured
+        if (error.code == -11850) {
+            return;
+        } else {
+            [self handlePlayBackDidFinishWithError:errorMsg];
+        }
+    } else if (shouldAutoClose) {
+        [self handlePlayBackDidFinishWithSuccess];
+    }
+}
+
+- (void) handlePlayBackDidFinishWithError:(NSString*)errorMsg {
+    [self cleanup];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMsg];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self->callbackId];
+}
+
+- (void) handlePlayBackDidFinishWithSuccess {
+    [self cleanup];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:true];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self->callbackId];
+}
+
+- (void) cleanup {
     NSLog(@"Clean up called");
     imageView = nil;
     initFullscreen = false;
