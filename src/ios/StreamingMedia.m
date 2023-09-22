@@ -34,12 +34,13 @@
 NSString * const TYPE_VIDEO = @"VIDEO";
 NSString * const TYPE_AUDIO = @"AUDIO";
 NSString * const DEFAULT_IMAGE_SCALE = @"center";
+NSString * const DEFAULT_LANGUAGE = @"en";
 int const ENDING_THRESHOLD = 60;
 
 -(void)parseOptions:(NSDictionary *)options type:(NSString *) type {
     // Common options
     mOrientation = options[@"orientation"] ?: @"default";
-    language = options[@"language"] ?: @"ru";
+    language = options[@"language"] ?: DEFAULT_LANGUAGE;
     startFrom = options[@"startFrom"] ?: @"0";
 
     if (![options isKindOfClass:[NSNull class]] && [options objectForKey:@"shouldAutoClose"]) {
@@ -263,6 +264,13 @@ int const ENDING_THRESHOLD = 60;
         if([[option extendedLanguageTag] isEqualToString:language]) {
             [item selectMediaOption:option inMediaSelectionGroup:group];
             break;
+        }
+    }
+
+    for (AVMediaSelectionOption *option in [group options]) {
+        if([[option extendedLanguageTag] isEqualToString:DEFAULT_LANGUAGE]) {
+            [item selectMediaOption:option inMediaSelectionGroup:group];
+            return;
         }
     }
 }

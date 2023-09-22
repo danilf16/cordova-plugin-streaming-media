@@ -19,6 +19,7 @@ import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 public class SimpleVideoStream extends AppCompatActivity {
 	private static final int ENDING_THRESHOLD_MS = 60 * 1000;
+	private static final String DEFAULT_LANGUAGE = "en";
 
 	protected StyledPlayerView playerView;
 	private ExoPlayer player;
@@ -71,12 +72,15 @@ public class SimpleVideoStream extends AppCompatActivity {
 
 		if (b != null && b.containsKey("language")) {
 			String lang = b.getString("language");
+			if (lang == null) {
+				lang = DEFAULT_LANGUAGE;
+			}
 
 			player.setTrackSelectionParameters(
 					player.getTrackSelectionParameters()
 							.buildUpon()
-							.setPreferredAudioLanguage(lang)
-							.setPreferredTextLanguage(lang)
+							.setPreferredAudioLanguages(lang, DEFAULT_LANGUAGE)
+							.setPreferredTextLanguages(lang, DEFAULT_LANGUAGE)
 							.build());
 		}
 
