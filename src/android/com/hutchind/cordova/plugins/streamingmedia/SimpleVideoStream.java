@@ -60,7 +60,7 @@ public class SimpleVideoStream extends AppCompatActivity {
 		playerView.setShowPreviousButton(false);
 		playerView.setShowNextButton(false);
 
-		playerView.setControllerVisibilityListener(visibility -> {
+		playerView.setControllerVisibilityListener((StyledPlayerView.ControllerVisibilityListener) visibility -> {
 			if (visibility == View.VISIBLE && closeButton != null) {
 				closeButton.setVisibility(View.VISIBLE);
 			}
