@@ -263,7 +263,7 @@ int const ENDING_THRESHOLD = 60;
     for (AVMediaSelectionOption *option in [group options]) {
         if([[option extendedLanguageTag] isEqualToString:language]) {
             [item selectMediaOption:option inMediaSelectionGroup:group];
-            break;
+            return;
         }
     }
 
