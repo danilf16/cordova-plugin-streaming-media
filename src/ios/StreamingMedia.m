@@ -240,8 +240,8 @@ int const ENDING_THRESHOLD = 60;
     // present modally so we get a close button
     __weak StreamingMedia *weakSelf = self;
     [self.viewController presentViewController:moviePlayer animated:YES completion:^(void){
-        __strong typeof(self) strongSelf = weakSelf;
-        [self seekToVideoTime:strongSelf->startFrom];
+        __strong __typeof__(self) strongSelf = weakSelf;
+        [strongSelf seekToVideoTime:strongSelf->startFrom];
     }];
 
     // add audio image and background color
