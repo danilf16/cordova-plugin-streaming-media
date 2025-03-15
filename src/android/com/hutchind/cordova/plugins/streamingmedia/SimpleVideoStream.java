@@ -9,23 +9,30 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
+import androidx.mediarouter.app.MediaRouteButton;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.ui.StyledPlayerView;
+import com.google.android.gms.cast.framework.CastButtonFactory;
 
 public class SimpleVideoStream extends AppCompatActivity {
 	private static final int ENDING_THRESHOLD_MS = 60 * 1000;
 	private static final String DEFAULT_LANGUAGE = "en";
 
-	protected StyledPlayerView playerView;
+	protected PlayerView playerView;
 	private ExoPlayer player;
 	private ImageButton closeButton;
+	private MediaRouteButton mrButton;
 
 	@Override
+	@OptIn(markerClass = UnstableApi.class)
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(getResourceId("layout", "activity_video"));
@@ -47,10 +54,10 @@ public class SimpleVideoStream extends AppCompatActivity {
 			int stopAt = b.getInt("stopAt");
 
 			player.createMessage(((messageType, payload) -> stopVideo()))
-				.setLooper(Looper.getMainLooper())
-				.setPosition(stopAt)
-				.setDeleteAfterDelivery(true)
-				.send();
+					.setLooper(Looper.getMainLooper())
+					.setPosition(stopAt)
+					.setDeleteAfterDelivery(true)
+					.send();
 		}
 
 		playerView = findViewById(getResourceId("id", "player_view"));
@@ -60,13 +67,25 @@ public class SimpleVideoStream extends AppCompatActivity {
 		playerView.setShowPreviousButton(false);
 		playerView.setShowNextButton(false);
 
-		playerView.setControllerVisibilityListener((StyledPlayerView.ControllerVisibilityListener) visibility -> {
-			if (visibility == View.VISIBLE && closeButton != null) {
-				closeButton.setVisibility(View.VISIBLE);
+		playerView.setControllerVisibilityListener((PlayerView.ControllerVisibilityListener) visibility -> {
+			if (visibility == View.VISIBLE) {
+				if (closeButton != null) {
+					closeButton.setVisibility(View.VISIBLE);
+				}
+
+				if (mrButton != null) {
+					mrButton.setVisibility(View.VISIBLE);
+				}
 			}
 
-			if (visibility == View.GONE && closeButton != null) {
-				closeButton.setVisibility(View.GONE);
+			if (visibility == View.GONE) {
+				if (closeButton != null) {
+					closeButton.setVisibility(View.GONE);
+				}
+
+				if (mrButton != null) {
+					mrButton.setVisibility(View.GONE);
+				}
 			}
 		});
 
@@ -127,6 +146,10 @@ public class SimpleVideoStream extends AppCompatActivity {
 			setResult(Activity.RESULT_OK, intent);
 			finish();
 		});
+
+		mrButton = findViewById(getResourceId("id", "exo_cast_button"));
+		CastButtonFactory.setUpMediaRouteButton(getApplicationContext(), mrButton);
+		mrButton.setRemoteIndicatorDrawable(ContextCompat.getDrawable(this, getResourceId("drawable", "mr_button_dark")));
 	}
 
 	@Override

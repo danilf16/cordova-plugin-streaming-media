@@ -70,12 +70,16 @@
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/StreamingMedia.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/ImageLoadTask.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
 
-		<source-file src="src/android/layout/activity_video.xml" target-dir="res/layout" />
+		<source-file src="src/android/res/layout/activity_video.xml" target-dir="res/layout" />
+		<source-file src="src/android/res/drawable/mr_button_connected_dark.xml" target-dir="res/drawable" />
+		<source-file src="src/android/res/drawable/mr_button_connecting_dark.xml" target-dir="res/drawable" />
+		<source-file src="src/android/res/drawable/mr_button_dark.xml" target-dir="res/drawable" />
 
-		<framework src="androidx.constraintlayout:constraintlayout:2.1.4"/>
-		<framework src="com.google.android.exoplayer:exoplayer-core:2.19.1"/>
-		<framework src="com.google.android.exoplayer:exoplayer-hls:2.19.1"/>
-		<framework src="com.google.android.exoplayer:exoplayer-ui:2.19.1"/>
+		<framework src="androidx.constraintlayout:constraintlayout:2.2.1"/>
+		<framework src="androidx.media3:media3-exoplayer:1.5.1"/>
+		<framework src="androidx.media3:media3-ui:1.5.1"/>
+		<framework src="androidx.media3:media3-cast:1.5.1"/>
+		<framework src="androidx.media3:media3-exoplayer-hls:1.5.1"/>
 	</platform>
 
 	<platform name="amazon-fireos">
