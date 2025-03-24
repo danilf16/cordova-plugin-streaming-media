@@ -1,12 +1,9 @@
 package com.hutchind.cordova.plugins.streamingmedia;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.os.Build;
 import java.util.Iterator;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,9 +11,10 @@ import org.json.JSONException;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.PluginResult;
 
 public class StreamingMedia extends CordovaPlugin {
+	public static final String DEFAULT_LANGUAGE = "en";
+
 	public static final String ACTION_PLAY_AUDIO = "playAudio";
 	public static final String ACTION_PLAY_VIDEO = "playVideo";
 
@@ -50,6 +48,7 @@ public class StreamingMedia extends CordovaPlugin {
 	private boolean playAudio(String url, JSONObject options) {
 		return play(SimpleAudioStream.class, url, options);
 	}
+
 	private boolean playVideo(String url, JSONObject options) {
 		return play(SimpleVideoStream.class, url, options);
 	}

@@ -65,8 +65,10 @@
 			<activity android:configChanges="orientation|screenSize" android:name="com.hutchind.cordova.plugins.streamingmedia.SimpleAudioStream" android:label="Simple Audio Stream"></activity>
 			<activity android:configChanges="orientation|screenSize" android:name="com.hutchind.cordova.plugins.streamingmedia.SimpleVideoStream" android:label="Simple Video Stream" android:theme="@style/Theme.AppCompat.Light.NoActionBar" android:screenOrientation="sensorLandscape"></activity>
 		</config-file>
+
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/SimpleAudioStream.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/SimpleVideoStream.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
+		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/PlayerManager.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/StreamingMedia.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/ImageLoadTask.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
 

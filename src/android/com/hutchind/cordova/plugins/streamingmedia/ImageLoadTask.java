@@ -5,15 +5,11 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.widget.ImageView;
 import android.content.Context;
-import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.io.IOException;
-
 
 public class ImageLoadTask extends AsyncTask<Void, Void, Bitmap> {
-
 	private String uri;
 	private ImageView imageView;
 	private Context context;

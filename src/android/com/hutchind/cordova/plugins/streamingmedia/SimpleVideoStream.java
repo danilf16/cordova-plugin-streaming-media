@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -12,29 +12,35 @@ import android.widget.ImageButton;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
-import androidx.media3.common.Player;
+import androidx.media3.common.MimeTypes;
 import androidx.media3.common.util.UnstableApi;
-import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 import androidx.mediarouter.app.MediaRouteButton;
 
 import com.google.android.gms.cast.framework.CastButtonFactory;
+import com.google.android.gms.cast.framework.CastContext;
 
+@UnstableApi
 public class SimpleVideoStream extends AppCompatActivity {
-	private static final int ENDING_THRESHOLD_MS = 60 * 1000;
-	private static final String DEFAULT_LANGUAGE = "en";
-
 	protected PlayerView playerView;
-	private ExoPlayer player;
 	private ImageButton closeButton;
 	private MediaRouteButton mrButton;
+
+	private PlayerManager playerManager;
+	private CastContext castContext;
 
 	@Override
 	@OptIn(markerClass = UnstableApi.class)
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		try {
+			castContext = CastContext.getSharedInstance(this);
+		} catch (RuntimeException e) {
+			Log.d("MOM_Cast", e.toString());
+		}
+
 		setContentView(getResourceId("layout", "activity_video"));
 		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
 				| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
@@ -47,23 +53,15 @@ public class SimpleVideoStream extends AppCompatActivity {
 			finish();
 		}
 
-		player = new ExoPlayer.Builder(getApplicationContext()).build();
-		MediaItem mediaItem = MediaItem.fromUri(mVideoUrl);
-
-		if (b != null && b.containsKey("stopAt")) {
-			int stopAt = b.getInt("stopAt");
-
-			player.createMessage(((messageType, payload) -> stopVideo()))
-					.setLooper(Looper.getMainLooper())
-					.setPosition(stopAt)
-					.setDeleteAfterDelivery(true)
-					.send();
-		}
+		MediaItem mediaItem = new MediaItem.Builder()
+				.setUri(mVideoUrl)
+				.setMimeType(MimeTypes.APPLICATION_M3U8)
+				.build();
 
 		playerView = findViewById(getResourceId("id", "player_view"));
-		playerView.requestFocus();
-		playerView.setPlayer(player);
+		playerManager = new PlayerManager(this, playerView, castContext, mediaItem, getLanguage(b), getStartFrom(b));
 
+		playerView.requestFocus();
 		playerView.setShowPreviousButton(false);
 		playerView.setShowNextButton(false);
 
@@ -89,59 +87,14 @@ public class SimpleVideoStream extends AppCompatActivity {
 			}
 		});
 
-		if (b != null && b.containsKey("language")) {
-			String lang = b.getString("language");
-			if (lang == null) {
-				lang = DEFAULT_LANGUAGE;
-			}
-
-			player.setTrackSelectionParameters(
-					player.getTrackSelectionParameters()
-							.buildUpon()
-							.setPreferredAudioLanguages(lang, DEFAULT_LANGUAGE)
-							.setPreferredTextLanguages(lang, DEFAULT_LANGUAGE)
-							.build());
-		}
-
-		player.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-		player.setMediaItem(mediaItem);
-
-		final boolean[] isAlreadySought = {false};
-
-		player.addListener(new Player.Listener() {
-			@Override
-			public void onPlaybackStateChanged(int playbackState) {
-				if (playbackState == ExoPlayer.STATE_READY && !isAlreadySought[0]) {
-					if (b != null && b.containsKey("startFrom")) {
-						long position = b.getInt("startFrom", 0) * 1000L;
-						long duration = player.getDuration();
-
-						if (duration - position < ENDING_THRESHOLD_MS) {
-							position = 0;
-						}
-
-						player.seekTo(position);
-						isAlreadySought[0] = true;
-					}
-				}
-			}
-		});
-
-		player.prepare();
-		player.play();
 		playerView.hideController();
 
 		closeButton = findViewById(getResourceId("id", "exo_close"));
 		closeButton.setOnClickListener(v -> {
-			player.stop();
+			long finishAt = playerManager.stop();
 
 			Intent intent = new Intent();
-
-			if (player.getDuration() - player.getCurrentPosition() < ENDING_THRESHOLD_MS) {
-				intent.putExtra("finishAt", 0);
-			} else {
-				intent.putExtra("finishAt", player.getCurrentPosition());
-			}
+			intent.putExtra("finishAt", finishAt);
 
 			setResult(Activity.RESULT_OK, intent);
 			finish();
@@ -154,21 +107,14 @@ public class SimpleVideoStream extends AppCompatActivity {
 
 	@Override
 	protected void onDestroy() {
-		if (player != null) {
-			player.stop();
-			player.release();
+		if (castContext == null) {
+			return;
 		}
 
+		playerManager.release();
+		playerManager = null;
+
 		super.onDestroy();
-	}
-
-	private void stopVideo() {
-		Intent intent = new Intent();
-		intent.putExtra("message", "stopped");
-
-		player.stop();
-		setResult(Activity.RESULT_OK, intent);
-		finish();
 	}
 
 	private int getResourceId(String type, String name) {
@@ -176,5 +122,23 @@ public class SimpleVideoStream extends AppCompatActivity {
 		String packageName = app.getPackageName();
 
 		return app.getResources().getIdentifier(name, type, packageName);
+	}
+
+	private String getLanguage(Bundle bundle) {
+		String lang = StreamingMedia.DEFAULT_LANGUAGE;
+
+		if (bundle != null && bundle.containsKey("language")) {
+			lang = bundle.getString("language");
+		}
+
+		return lang != null ? lang : StreamingMedia.DEFAULT_LANGUAGE;
+	}
+
+	private long getStartFrom(Bundle bundle) {
+		if (bundle != null && bundle.containsKey("startFrom")) {
+			return bundle.getInt("startFrom", 0) * 1000L;
+		}
+
+		return 0;
 	}
 }
