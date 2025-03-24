@@ -65,6 +65,9 @@
 			<activity android:configChanges="orientation|screenSize" android:name="com.hutchind.cordova.plugins.streamingmedia.SimpleAudioStream" android:label="Simple Audio Stream"></activity>
 			<activity android:configChanges="orientation|screenSize" android:name="com.hutchind.cordova.plugins.streamingmedia.SimpleVideoStream" android:label="Simple Video Stream" android:theme="@style/Theme.AppCompat.Light.NoActionBar" android:screenOrientation="sensorLandscape"></activity>
 		</config-file>
+		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME" android:value="androidx.media3.cast.DefaultCastOptionsProvider"/>
+		</config-file>
 
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/SimpleAudioStream.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
 		<source-file src="src/android/com/hutchind/cordova/plugins/streamingmedia/SimpleVideoStream.java" target-dir="src/com/hutchind/cordova/plugins/streamingmedia" />
@@ -82,6 +85,7 @@
 		<framework src="androidx.media3:media3-ui:1.5.1"/>
 		<framework src="androidx.media3:media3-cast:1.5.1"/>
 		<framework src="androidx.media3:media3-exoplayer-hls:1.5.1"/>
+		<framework src="androidx.mediarouter:mediarouter:1.7.0"/>
 	</platform>
 
 	<platform name="amazon-fireos">
