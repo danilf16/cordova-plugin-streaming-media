@@ -155,7 +155,6 @@ class PlayerManager implements Player.Listener, SessionAvailabilityListener {
 
 		// Player state management.
 		long playbackPositionMs = C.TIME_UNSET;
-		boolean playWhenReady = false;
 
 		Player previousPlayer = this.currentPlayer;
 		if (previousPlayer != null) {
@@ -163,7 +162,6 @@ class PlayerManager implements Player.Listener, SessionAvailabilityListener {
 			int playbackState = previousPlayer.getPlaybackState();
 			if (playbackState != Player.STATE_ENDED) {
 				playbackPositionMs = previousPlayer.getCurrentPosition();
-				playWhenReady = previousPlayer.getPlayWhenReady();
 			}
 
 			previousPlayer.stop();
@@ -173,7 +171,7 @@ class PlayerManager implements Player.Listener, SessionAvailabilityListener {
 		this.currentPlayer = currentPlayer;
 
 		currentPlayer.setMediaItem(mediaItem, playbackPositionMs);
-		currentPlayer.setPlayWhenReady(playWhenReady);
+		currentPlayer.setPlayWhenReady(true);
 		currentPlayer.prepare();
 	}
 }
