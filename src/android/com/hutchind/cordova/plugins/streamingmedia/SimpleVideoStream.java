@@ -53,10 +53,16 @@ public class SimpleVideoStream extends AppCompatActivity {
 			finish();
 		}
 
-		MediaItem mediaItem = new MediaItem.Builder()
-				.setUri(mVideoUrl)
-				.setMimeType(MimeTypes.APPLICATION_M3U8)
-				.build();
+		MediaItem mediaItem;
+
+		if (mVideoUrl != null && mVideoUrl.contains(".m3u8")) {
+			mediaItem = new MediaItem.Builder()
+					.setUri(mVideoUrl)
+					.setMimeType(MimeTypes.APPLICATION_M3U8)
+					.build();
+		} else {
+			mediaItem = MediaItem.fromUri(mVideoUrl);
+		}
 
 		playerView = findViewById(getResourceId("id", "player_view"));
 		playerManager = new PlayerManager(this, playerView, castContext, mediaItem, getLanguage(b), getStartFrom(b));
